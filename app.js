@@ -860,3 +860,8 @@ app.listen(app.get('port'), function() {
 
 module.exports = app;
 
+var exec = require('child_process').exec;
+var child = exec('python chatbot-rnn/chatbot.py');
+child.on('close', function(code) {
+    console.log('closing code: ' + code);
+});
