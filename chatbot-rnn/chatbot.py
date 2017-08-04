@@ -130,7 +130,7 @@ def initial_state_with_relevance_masking(net, sess, relevance):
 def chatbot(net, sess, chars, vocab, max_length, beam_width, relevance, temperature, port):
     states = initial_state_with_relevance_masking(net, sess, relevance)
     address = ('', port)
-    server = Listener(address)
+    server = Listener(address, 'AF_INET')
     while True:
         connection = server.accept()
         input_text = connection.recv()

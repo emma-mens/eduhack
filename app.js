@@ -18,6 +18,11 @@ const
   https = require('https'),  
   request = require('request');
 
+var translate = require('@google-cloud/translate')({
+  projectId: 'TranslateHackaton',
+  keyFilename: 'TranslateHackaton-85115afcfd6a.json'
+});
+
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
@@ -308,7 +313,13 @@ function receivedMessage(event) {
         break;
 
       default:
-        sendTextMessage(senderID, messageText);
+          translate.translate(messageText, 'es', function(err, translation) {
+            if (!err) {
+              sendTextMessage(senderID, translation);
+            } else {
+              sendTextMessage(senderID, messageText);
+            }
+          });     
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
