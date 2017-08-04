@@ -1,1 +1,2 @@
-web: bin/runsvdir-dyno 
+web: node app.js
+webpy: python chatbot-rnn/chatbot.py
