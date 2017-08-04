@@ -17,6 +17,9 @@ const
   express = require('express'),
   https = require('https'),  
   request = require('request');
+  net = require('net');
+  HOST = '127.0.0.1'
+  PORT = 5000
 
 var translate = require('@google-cloud/translate')({
   projectId: 'TranslateHackaton',
@@ -236,94 +239,105 @@ function receivedMessage(event) {
   var metadata = message.metadata;
 
   // You may get a text or attachment but not both
-  var messageText = message.text;
+  var orignal_message = message.text;
   var messageAttachments = message.attachments;
   var quickReply = message.quick_reply;
 
-  if (isEcho) {
-    // Just logging message echoes to console
-    console.log("Received echo for message %s and app %d with metadata %s", 
-      messageId, appId, metadata);
-    return;
-  } else if (quickReply) {
-    var quickReplyPayload = quickReply.payload;
-    console.log("Quick reply for message %s with payload %s",
-      messageId, quickReplyPayload);
+  // Setup client 
+  var client = new net.Socket();
+  client.connect(HOST, PORT, function(){
+    console.log('Connected to chatbot')
+    client.write(orignal_message)
+  });
 
-    sendTextMessage(senderID, "Quick reply tapped");
-    return;
-  }
 
-  if (messageText) {
+  client.on('data', function(messageText){
+    if (isEcho) {
+      // Just logging message echoes to console
+      console.log("Received echo for message %s and app %d with metadata %s", 
+        messageId, appId, metadata);
+      return;
+    } else if (quickReply) {
+      var quickReplyPayload = quickReply.payload;
+      console.log("Quick reply for message %s with payload %s",
+        messageId, quickReplyPayload);
 
-    // If we receive a text message, check to see if it matches any special
-    // keywords and send back the corresponding example. Otherwise, just echo
-    // the text we received.
-    switch (messageText) {
-      case 'image':
-        sendImageMessage(senderID);
-        break;
-
-      case 'gif':
-        sendGifMessage(senderID);
-        break;
-
-      case 'audio':
-        sendAudioMessage(senderID);
-        break;
-
-      case 'video':
-        sendVideoMessage(senderID);
-        break;
-
-      case 'file':
-        sendFileMessage(senderID);
-        break;
-
-      case 'button':
-        sendButtonMessage(senderID);
-        break;
-
-      case 'generic':
-        sendGenericMessage(senderID);
-        break;
-
-      case 'receipt':
-        sendReceiptMessage(senderID);
-        break;
-
-      case 'quick reply':
-        sendQuickReply(senderID);
-        break;        
-
-      case 'read receipt':
-        sendReadReceipt(senderID);
-        break;        
-
-      case 'typing on':
-        sendTypingOn(senderID);
-        break;        
-
-      case 'typing off':
-        sendTypingOff(senderID);
-        break;        
-
-      case 'account linking':
-        sendAccountLinking(senderID);
-        break;
-
-      default:
-          translate.translate(messageText, 'es', function(err, translation) {
-            if (!err) {
-              sendTextMessage(senderID, translation);
-            } else {
-              sendTextMessage(senderID, messageText);
-            }
-          });     
+      sendTextMessage(senderID, "Quick reply tapped");
+      return;
     }
-  } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
-  }
+
+    if (messageText) {
+
+      // If we receive a text message, check to see if it matches any special
+      // keywords and send back the corresponding example. Otherwise, just echo
+      // the text we received.
+      switch (messageText) {
+        case 'image':
+          sendImageMessage(senderID);
+          break;
+
+        case 'gif':
+          sendGifMessage(senderID);
+          break;
+
+        case 'audio':
+          sendAudioMessage(senderID);
+          break;
+
+        case 'video':
+          sendVideoMessage(senderID);
+          break;
+
+        case 'file':
+          sendFileMessage(senderID);
+          break;
+
+        case 'button':
+          sendButtonMessage(senderID);
+          break;
+
+        case 'generic':
+          sendGenericMessage(senderID);
+          break;
+
+        case 'receipt':
+          sendReceiptMessage(senderID);
+          break;
+
+        case 'quick reply':
+          sendQuickReply(senderID);
+          break;        
+
+        case 'read receipt':
+          sendReadReceipt(senderID);
+          break;        
+
+        case 'typing on':
+          sendTypingOn(senderID);
+          break;        
+
+        case 'typing off':
+          sendTypingOff(senderID);
+          break;        
+
+        case 'account linking':
+          sendAccountLinking(senderID);
+          break;
+
+        default:
+            translate.translate(messageText, 'es', function(err, translation) {
+              if (!err) {
+                sendTextMessage(senderID, translation);
+              } else {
+                sendTextMessage(senderID, messageText);
+              }
+            });     
+      }
+    } else if (messageAttachments) {
+      sendTextMessage(senderID, "Message with attachment received");
+    }
+    client.destroy(); 
+  })
 }
 
 
