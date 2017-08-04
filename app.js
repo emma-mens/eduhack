@@ -17,12 +17,10 @@ const
   express = require('express'),
   https = require('https'),  
   request = require('request');
-
 var translate = require('@google-cloud/translate')({
   projectId: 'TranslateHackaton',
   keyFilename: 'TranslateHackaton-85115afcfd6a.json'
 });
-
 var app = express();
 app.set('port', process.env.PORT || 5000);
 app.set('view engine', 'ejs');
